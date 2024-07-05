@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -23,7 +24,8 @@ public class TodoService {
     private UserService userService;
 
 
-    public void saveEntry(Todo todo, String username){
+    @Transactional
+   public void saveEntry(Todo todo, String username){
         try{
             User user=userService.findByUsername(username);
         todo.setDate(LocalDate.now());

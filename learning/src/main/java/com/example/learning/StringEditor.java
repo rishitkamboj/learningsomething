@@ -1,2 +1,10 @@
-package com.example.learning;public class StringEditor {
+package com.example.learning;
+
+import java.beans.PropertyEditorSupport;
+
+public class StringEditor extends PropertyEditorSupport {
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+        setValue(text.trim().toUpperCase());
+    }
 }
