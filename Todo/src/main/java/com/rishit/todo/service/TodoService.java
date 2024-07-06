@@ -3,6 +3,7 @@ package com.rishit.todo.service;
 import com.rishit.todo.entity.Todo;
 import com.rishit.todo.entity.User;
 import com.rishit.todo.repository.TodoRepo;
+import com.rishit.todo.repository.UserRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ public class TodoService {
     private TodoRepo todorepo;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepo userRepo;
 
 
     @Transactional
@@ -58,14 +61,22 @@ public class TodoService {
     public Optional<Todo> findById(ObjectId id){
 return todorepo.findById(id);
     }
-
-    public boolean delete(ObjectId id,String username){
+@Transactional
+    public void delete(ObjectId id,String username){
+        try{
         User user=userService.findByUsername(username);
-        user.getTodoEntries().removeIf(todo -> todo.getId().equals(id));
-        userService.saveEntry(user);
-         todorepo.deleteById(id);
-         return true;
+      boolean b=  user.getTodoEntries().removeIf(todo -> todo.getId().equals(id));
+        if(b){
+            userService.saveEntry(user);
+         todorepo.deleteById(id);}
+        }
+        catch(Exception e){
+            throw new RuntimeException("An error occured: " + e.getMessage());
+        }
+
     }
+
+
 
 
 }

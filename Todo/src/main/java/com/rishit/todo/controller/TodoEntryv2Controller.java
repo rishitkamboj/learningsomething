@@ -10,10 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/todo")
@@ -26,8 +29,10 @@ public class TodoEntryv2Controller {
     private UserService userService;
 
 
-    @GetMapping("/getAll/{username}")
-    public ResponseEntity<?> getAllJournalEntriesofUser(@PathVariable String username) {
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAllJournalEntriesofUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
         User user = userService.findByUsername(username);
         List<Todo> all=user.getTodoEntries();
         if(all!=null && !all.isEmpty()) {
@@ -41,10 +46,11 @@ public class TodoEntryv2Controller {
 //        return ResponseEntity.status(HttpStatus.OK).body(todoService.findAll());
 //    }
 
-    @PostMapping("/createOne/{username}")
-    public ResponseEntity<Todo> addTodo(@RequestBody Todo todo, @PathVariable String username) {
+    @PostMapping("/createOne")
+    public ResponseEntity<Todo> addTodo(@RequestBody Todo todo) {
         try{
-
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
             todoService.saveEntry(todo,username);
             return ResponseEntity.status(HttpStatus.CREATED).body(todo);
         }
@@ -54,30 +60,39 @@ public class TodoEntryv2Controller {
 
     }
 
+    @GetMapping("id/{myId}")
+    public ResponseEntity<?> getTodoById(@PathVariable("myId") ObjectId myId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
 
-
-
-    @GetMapping("getIds")
-    public ResponseEntity<Todo> getTodo(@RequestParam(value = "id")ObjectId id ) {
-        Optional<Todo> todo=todoService.findById(id);
-        if(todo.isPresent()) {
-            return ResponseEntity.status(HttpStatus.OK).body(todo.get());
+        User byUsername = userService.findByUsername(username);
+        if (byUsername == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+
+        List<Todo> todos = byUsername.getTodoEntries();
+        if (todos == null || todos.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        List<Todo> heh = todos.stream().filter(x -> x.getId().equals(myId)).toList();
+        if (!heh.isEmpty()) {
+            Optional<Todo> todo = todoService.findById(myId);
+            if (todo.isPresent()) {
+                return new ResponseEntity<>(todo.get(), HttpStatus.OK);
+            }
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("getIds/{id}")
-    public ResponseEntity<Todo> getTodos(@PathVariable ObjectId id) {
-       Optional<Todo> todo=todoService.findById(id);
-       if(todo.isPresent()) {
-           return ResponseEntity.status(HttpStatus.OK).body(todo.get());
-       }
-       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-    }
 
 
-    @DeleteMapping("deleteIds/{username}/{id}")
-    public ResponseEntity<?> DeleteTodos(@PathVariable ObjectId id,@PathVariable String username) {
+
+    @DeleteMapping("deleteIds/{id}")
+    public ResponseEntity<?> DeleteTodos(@PathVariable ObjectId id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
         todoService.delete(id,username);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
