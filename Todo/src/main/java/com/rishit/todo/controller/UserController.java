@@ -6,6 +6,8 @@ import com.rishit.todo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,19 +22,27 @@ public class UserController {
     public List<User> getAllUsers(){
         return userService.findAll();
     }
-    @PostMapping("/userCreate")
-    public void createUser(@RequestBody User user){
-        userService.saveEntry(user);
-    }
 
-    @PutMapping("/{username}")
-    public ResponseEntity<?> changeUser(@RequestBody User user,@PathVariable String username){
+
+    @PutMapping("/update")
+    public ResponseEntity<?> changeUser(@RequestBody User user){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username=authentication.getName();
         User byUsername = userService.findByUsername(username);
-        if(byUsername != null){
+
             byUsername.setUserName(user.getUserName());
              byUsername.setPassWord(user.getPassWord());
-            userService.saveEntry(byUsername);
-        }
+            userService.saveNewUser(byUsername);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping("delete")
+    public ResponseEntity<?> deleteUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username=authentication.getName();
+        User byUsername = userService.findByUsername(username);
+        userService.delete(byUsername.getId());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

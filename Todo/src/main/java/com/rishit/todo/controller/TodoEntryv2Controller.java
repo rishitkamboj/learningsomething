@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/v1/todo")
+@RequestMapping("/todo")
 public class TodoEntryv2Controller {
 
     @Autowired

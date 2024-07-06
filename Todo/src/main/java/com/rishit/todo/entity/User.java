@@ -24,5 +24,7 @@ public class User {
     @DBRef
     private List<Todo> todoEntries=new ArrayList<>();
 
+    private List<String> roles;
+
 
 }
