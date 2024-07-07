@@ -56,4 +56,9 @@ public class UserService {
  return userrepo.findByUserName(userName);
     }
 
+    public void saveAdmin(User user) {
+        user.setPassWord(passwordEncoder.encode(user.getPassWord()));
+        user.setRoles(List.of("USER","ADMIN"));
+        userrepo.save(user);
+    }
 }
