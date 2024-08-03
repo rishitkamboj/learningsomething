@@ -26,8 +26,8 @@ public class UserController {
 
     @PutMapping("/update")
     public ResponseEntity<?> changeUser(@RequestBody User user){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username=authentication.getName();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username=authentication.getName();
         User byUsername = userService.findByUsername(username);
 
             byUsername.setUserName(user.getUserName());
